@@ -1,4 +1,4 @@
-beg-to-differ.js
+beg-to-differ.js ![Travis CI](https://travis-ci.org/Schniz/beg-to-differ.svg)
 ================
 
 Simple string diff patches for your app.
