@@ -4,11 +4,11 @@ module.exports = {
 	createPatch: function(from, to) {
 		return diff.diffWordsWithSpace(from, to).reduce(function(differencesArray, difference, index) {
 			if (difference.removed) {
-				return differencesArray.concat({ skip: difference.value.length });
+				return differencesArray.concat("-" + difference.value.length);
 			} else if (difference.added) {
-				return differencesArray.concat({ add: difference.value });
+				return differencesArray.concat("+" + difference.value);
 			} else {
-				return differencesArray.concat({ leave: difference.value.length });
+				return differencesArray.concat("~" + difference.value.length);
 			}
 		}, []);
 	},
@@ -16,14 +16,18 @@ module.exports = {
 		var cursor = 0;
 
 		return patchJson.reduce(function(text, difference) {
-			if (difference.leave) {
-				text += from.substr(cursor, difference.leave);
-				cursor += difference.leave;
+			var differenceAction = difference[0];
+			difference = difference.substr(1);
+
+			if (differenceAction === "~") {
+				difference = parseInt(difference, 0);
+				text += from.substr(cursor, difference);
+				cursor += difference;
 				return text;
-			} else if (difference.add) {
-				return text + difference.add;
-			} else if (difference.skip) {
-				cursor += difference.skip;
+			} else if (differenceAction === "+") {
+				return text + difference;
+			} else if (differenceAction === "-") {
+				cursor += parseInt(difference, 0);
 				return text;
 			}
 		}, "");
