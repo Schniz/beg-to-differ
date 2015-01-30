@@ -1,31 +1,49 @@
 var diff = require('diff');
 
-module.exports = {
-	createPatch: function(from, to) {
-		return diff.diffWordsWithSpace(from, to).reduce(function(differencesArray, difference, index) {
-			if (difference.removed) {
-				return differencesArray.concat({ skip: difference.value.length });
-			} else if (difference.added) {
-				return differencesArray.concat({ add: difference.value });
-			} else {
-				return differencesArray.concat({ leave: difference.value.length });
-			}
-		}, []);
-	},
-	applyPatch: function(from, patchJson) {
-		var cursor = 0;
+var REMOVE = "-";
+var SKIP = "~";
+var ADD = "+";
 
-		return patchJson.reduce(function(text, difference) {
-			if (difference.leave) {
-				text += from.substr(cursor, difference.leave);
-				cursor += difference.leave;
-				return text;
-			} else if (difference.add) {
-				return text + difference.add;
-			} else if (difference.skip) {
-				cursor += difference.skip;
-				return text;
-			}
-		}, "");
-	}
+var differenceActions = {};
+
+differenceActions[REMOVE] = function(from, difference, cursor, text) {
+  cursor += parseInt(difference);
+  return [cursor, text];
+};
+
+differenceActions[SKIP] = function(from, difference, cursor, text) {
+  difference = parseInt(difference, 0);
+  text += from.substr(cursor, difference);
+  cursor += difference;
+  return [cursor, text];
+};
+
+differenceActions[ADD] = function(from, difference, cursor, text) {
+  text = text + difference;
+  return [cursor, text];
+};
+
+module.exports = {
+  createPatch: function(from, to) {
+    return diff.diffWordsWithSpace(from, to).reduce(function(differencesArray, difference, index) {
+      if (difference.removed) {
+        return differencesArray.concat(REMOVE + difference.value.length);
+      } else if (difference.added) {
+        return differencesArray.concat(ADD + difference.value);
+      } else {
+        return differencesArray.concat(SKIP + difference.value.length);
+      }
+    }, []);
+  },
+  applyPatch: function(from, patchJson) {
+    var cursor = 0;
+
+    return patchJson.reduce(function(text, difference) {
+      var differenceAction = difference[0];
+      difference = difference.substr(1);
+      var results = differenceActions[differenceAction](from, difference, cursor, text);
+      cursor = results[0];
+      return results[1];
+    }, "");
+  }
 };
