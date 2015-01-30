@@ -1,6 +1,6 @@
 {
   "name": "beg-to-differ",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Simple string diff patching",
   "main": "differ.js",
   "scripts": {
