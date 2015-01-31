@@ -20,7 +20,7 @@ var patch = differ.createPatch("from String", "to String");
 var toString = differ.applyPatch("from String", patch);
 ```
 
-Can be used in Neo4j relationships when `JSON.stringify`ing it for implementing a simple versioning system.
+Can be used in Neo4j relationships without `JSON.stringify`ing it (array of strings) for implementing a simple versioning system.
 
 Testing
 -------
